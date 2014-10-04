@@ -27,14 +27,27 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.model.Item;
 import hudson.model.ItemGroup;
+import hudson.model.TopLevelItem;
+import hudson.scm.NullSCM;
+import hudson.scm.SCM;
+import hudson.scm.SCMDescriptor;
 
 import jenkins.branch.Branch;
 import jenkins.branch.BranchProjectFactory;
 import jenkins.branch.BranchProjectFactoryDescriptor;
 import jenkins.branch.MultiBranchProject;
+import jenkins.branch.MultiBranchProjectDescriptor;
+import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.StaplerRequest;
+
+import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * A multiple branch Test Kitchen build project type.
@@ -44,7 +57,12 @@ import java.io.IOException;
 public class KitchenMultibranchProject extends
 		MultiBranchProject<KitchenProject, KitchenBuild> {
 
-	/**
+    /**
+     * The default marker file.
+     */
+    private static final String DEFAULT_MARKER_FILE = "cloudbees";
+
+    /**
      * Constructor.
      *
      * @param parent the parent container.
@@ -61,6 +79,92 @@ public class KitchenMultibranchProject extends
     @Override
     protected BranchProjectFactory<KitchenProject, KitchenBuild> newProjectFactory() {
         return new ProjectFactoryImpl();
+    }
+
+    /**
+     * Our descriptor
+     */
+    @Extension
+    public static class DescriptorImpl extends MultiBranchProjectDescriptor {
+
+        /**
+         * The global default marker file.
+         */
+        private String markerFile;
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getDisplayName() {
+            return Messages.KitchenMultibranchProject_DisplayName();
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public TopLevelItem newInstance(ItemGroup parent, String name) {
+            return new KitchenMultibranchProject(parent, name);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        @NonNull
+        public List<SCMDescriptor<?>> getSCMDescriptors() {
+            List<SCMDescriptor<?>> result = new ArrayList<SCMDescriptor<?>>(SCM.all());
+            for (Iterator<SCMDescriptor<?>> iterator = result.iterator(); iterator.hasNext(); ) {
+                SCMDescriptor<?> d = iterator.next();
+                if (NullSCM.class.equals(d.clazz)) {
+                    iterator.remove();
+                }
+            }
+            return result; // todo figure out filtering
+        }
+
+        /**
+         * Returns the type of project factory supported by this project type.
+         *
+         * @return the type of project factory supported by this project type.
+         */
+        @SuppressWarnings("unused") // stapler
+        public BranchProjectFactoryDescriptor getProjectFactoryDescriptor() {
+            return Jenkins.getInstance().getDescriptorByType(ProjectFactoryImpl.DescriptorImpl.class);
+        }
+
+        /**
+         * Returns the global default marker file.
+         *
+         * @return the global default marker file.
+         */
+        public String getMarkerFile() {
+            return StringUtils.isBlank(markerFile) ? DEFAULT_MARKER_FILE : markerFile;
+        }
+
+        /**
+         * Sets the global default marker file.
+         *
+         * @param markerFile the global default marker file.
+         */
+        public void setMarkerFile(String markerFile) {
+            this.markerFile = StringUtils.isBlank(markerFile) ? DEFAULT_MARKER_FILE : markerFile.trim();
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
+            JSONObject specifyMarkerFile = json.optJSONObject("specifyMarkerFile");
+            if (specifyMarkerFile == null) {
+                setMarkerFile(null);
+            } else {
+                setMarkerFile(specifyMarkerFile.optString("markerFile", ""));
+            }
+            return true;
+        }
     }
 
     /**
