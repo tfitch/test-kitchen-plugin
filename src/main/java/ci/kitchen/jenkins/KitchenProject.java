@@ -24,6 +24,7 @@
 package ci.kitchen.jenkins;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+import hudson.matrix.MatrixProject;
 import hudson.model.Project;
 import hudson.model.Queue;
 import hudson.model.SCMedItem;
@@ -38,10 +39,7 @@ import jenkins.model.Jenkins;
  *
  * @author Tyler Fitch
  */
-public class KitchenProject extends Project<KitchenProject, KitchenBuild>
-        implements TopLevelItem, SCMedItem,
-        Queue.FlyweightTask {
-//        ItemGroup<KitchenEnvironmentProject>, 
+public class KitchenProject extends MatrixProject {
 
     /**
      * Hack to prevent the Configure link showing up in the sidebar.
@@ -96,18 +94,18 @@ public class KitchenProject extends Project<KitchenProject, KitchenBuild>
     /**
      * {@inheritDoc}
      */
-    @Override
-    @NonNull
-    protected Class<KitchenBuild> getBuildClass() {
-        return KitchenBuild.class;
-    }
+//    @Override
+//    @NonNull
+//    protected Class<KitchenBuild> getBuildClass() {
+//        return KitchenBuild.class;
+//    }
 
     /**
      * {@inheritDoc}
      */
     // TODO - Hack - child items of an item group that is a view container must to implement TopLevelItem
-    public TopLevelItemDescriptor getDescriptor() {
-        return (TopLevelItemDescriptor) Jenkins.getInstance().getDescriptorOrDie(KitchenProject.class);
-    }
+//    public TopLevelItemDescriptor getDescriptor() {
+//        return (TopLevelItemDescriptor) Jenkins.getInstance().getDescriptorOrDie(KitchenProject.class);
+//    }
 }
 

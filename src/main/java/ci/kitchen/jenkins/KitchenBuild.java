@@ -23,6 +23,7 @@
  */
 package ci.kitchen.jenkins;
 
+import hudson.matrix.MatrixBuild;
 import hudson.model.Build;
 
 import java.io.File;
@@ -34,7 +35,7 @@ import java.io.IOException;
  *
  * @author Tyler Fitch
  */
-public class KitchenBuild extends Build<KitchenProject, KitchenBuild> {
+public class KitchenBuild extends MatrixBuild {
 
 	/**
      * Constructor.
