@@ -25,8 +25,11 @@ package ci.kitchen.jenkins;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
+import hudson.init.InitMilestone;
+import hudson.init.Initializer;
 import hudson.model.Item;
 import hudson.model.ItemGroup;
+import hudson.model.Items;
 import hudson.model.TopLevelItem;
 import hudson.scm.NullSCM;
 import hudson.scm.SCM;
@@ -246,6 +249,15 @@ public class KitchenMultibranchProject extends
                 return KitchenMultibranchProject.class.isAssignableFrom(clazz);
             }
         }
+    }
+
+    /**
+     * Give us a nice XML alias
+     */
+    @Initializer(before = InitMilestone.PLUGINS_STARTED)
+    @SuppressWarnings("unused") // called by Jenkins
+    public static void registerXStream() {
+        Items.XSTREAM.alias("kitchen-multibranch", KitchenMultibranchProject.class);
     }
 
 }
