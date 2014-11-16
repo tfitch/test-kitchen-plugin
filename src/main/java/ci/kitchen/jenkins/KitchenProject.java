@@ -23,14 +23,12 @@
  */
 package ci.kitchen.jenkins;
 
-import edu.umd.cs.findbugs.annotations.NonNull;
+import hudson.Extension;
+import hudson.model.AbstractProject;
+import hudson.model.ItemGroup;
 import hudson.model.Project;
-import hudson.model.Queue;
-import hudson.model.SCMedItem;
 import hudson.model.TopLevelItem;
 import hudson.model.TopLevelItemDescriptor;
-import hudson.security.Permission;
-import jenkins.branch.Branch;
 import jenkins.model.Jenkins;
 
 /**
@@ -38,76 +36,57 @@ import jenkins.model.Jenkins;
  *
  * @author Tyler Fitch
  */
-public class KitchenProject extends Project<KitchenProject, KitchenBuild>
-        implements TopLevelItem, SCMedItem,
-        Queue.FlyweightTask {
-//        ItemGroup<KitchenEnvironmentProject>, 
+public class KitchenProject extends Project<KitchenProject, KitchenBuild> implements TopLevelItem {
 
     /**
-     * Hack to prevent the Configure link showing up in the sidebar.
-     */
-    public static final Permission CONFIGURE = null;
-
-    /**
-     * The branch that we are tracking.
-     */
-    @NonNull
-    private Branch branch;
-
-    /**
-     * Constructor.
+     * Constructor that specifies the {@link ItemGroup} for this project and the
+     * project name.
      *
-     * @param parent the parent.
-     * @param branch the branch.
+     * @param parent - the project's parent {@link ItemGroup}
+     * @param name   - the project's name
      */
-    public KitchenProject(@NonNull KitchenMultibranchProject parent, @NonNull Branch branch) {
-        super(parent, branch.getName());
-        this.branch = branch;
+    public KitchenProject(ItemGroup parent, String name) {
+        super(parent, name);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    @NonNull
-    public KitchenMultibranchProject getParent() {
-        return (KitchenMultibranchProject) super.getParent();
-    }
-
-    /**
-     * Returns the branch.
-     *
-     * @return the branch.
-     */
-    public synchronized Branch getBranch() {
-        return branch;
-    }
-
-    /**
-     * Sets the branch.
-     *
-     * @param branch the branch.
-     */
-    public synchronized void setBranch(@NonNull Branch branch) {
-        branch.getClass();
-        this.branch = branch;
+    public TopLevelItemDescriptor getDescriptor() {
+        return (DescriptorImpl) Jenkins.getInstance().getDescriptorOrDie(
+                KitchenProject.class);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    @NonNull
     protected Class<KitchenBuild> getBuildClass() {
         return KitchenBuild.class;
     }
 
     /**
-     * {@inheritDoc}
+     * Our project's descriptor.
      */
-    // TODO - Hack - child items of an item group that is a view container must to implement TopLevelItem
-    public TopLevelItemDescriptor getDescriptor() {
-        return (TopLevelItemDescriptor) Jenkins.getInstance().getDescriptorOrDie(KitchenProject.class);
+    @Extension
+    public static class DescriptorImpl extends AbstractProjectDescriptor {
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getDisplayName() {
+            return Messages.KitchenProject_DisplayName();
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public TopLevelItem newInstance(ItemGroup parent, String name) {
+            return new KitchenProject(parent, name);
+        }
     }
+
 }
 
